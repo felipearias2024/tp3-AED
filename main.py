@@ -22,7 +22,7 @@ def validarMayorQue(min):
 def crearVector(n):
     vec = [None] * n
     for i in range(len(vec)):
-        codigo = random.randint(1, 1000)
+        codigo = random.randint(1, 100000)
         precio = round(random.uniform(1, 100000), 2)
         ubicacion = random.randint(1, 23)
         estado = random.randint(0, 1)
@@ -90,24 +90,20 @@ def precioPromedioUsados(vec):
 
 
 def precioMayorPromedio(vec, precioprom):
-    ban = False
     for i in range(len(vec)):
         if vec[i].estado == 1 and vec[i].precio > precioprom:
-            ban = True
-            print("---------------------------")
             write(vec[i])
-    if ban == False:
-        print("No hay publicaciones que superen el precio promedio de usados")
 
 
 def menorPrecio(vec):
     menor = None
     for i in range(len(vec)):
-        if menor == None and vec[i].estado == 0 and vec[i].puntuacion != 1:
-            menor = vec[i].precio
-            if vec[i].precio < menor and vec[i].estado == 0 and vec[i].puntuacion != 1:
+        if vec[i].estado == 0 and vec[i].puntuacion != 1:
+            if menor is None :
                 menor = vec[i].precio
-    return  menor
+            elif vec[i].precio < menor:
+                menor = vec[i].precio
+    return menor
 
 
 def buscarPorId(vec, cod):
@@ -148,44 +144,63 @@ def crearMatriz(vec):
         mat[fil][col] += 1
     return mat
 
-def ubicaciones(num):
-    ubicaciones = "Buenos Aires", "Catamarca", "Chaco", "Chubut", "Córdoba", "Corrientes", "Entre Ríos", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", "Neuquén"\
-        , "Río Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucumán"
-    estados = "Nuevo", "Usado"
-    return ubicaciones[num]
+def ubicaciones(num, ubic):
+    return ubic[num]
 
-def puntuacion(num):
-    calificaciones = "Mala", "Regular", "Buena", "Muy buena", "Excelente"
-    return calificaciones[num]
+def puntuacion(num, calif):
+    return calif[num]
 
-def mostrarMatrizLista(mat):
+def mostrarMatrizLista(mat, calif, ubic):
     ban = False
     for i in range(len(mat)):
         for j in range(len(mat[0])):
             if mat[i][j] != 0:
                 if ban == False:
-                    print(ubicaciones(i))
+                    print("---------------------------")
+                    print(ubicaciones(i, ubic))
                 ban = True
-                print("\t", puntuacion(j), ":", end=" ")
+                print("\t", puntuacion(j, calif), ":", end=" ")
                 print(mat[i][j])
         ban = False
-        print()
 
 
-def mostrarMatriz(mat):
-    '''
+def mostrarMatriz(mat, ubic, calif):
     for f in range(len(mat[0])):
-        print(puntuacion(f), end=" \t ")
+        print("{:<4}".format('{:.5}'.format(puntuacion(f, calif))), end= " \t ",)
     print( )
-    print("---------------------------")
-    '''
+    print("--------------------------------------------")
     for i in range(len(mat)):
         for j in range(len(mat[0])):
-            print(mat[i][j],end= " \t ",)
-        print(ubicaciones(i))
+            print("{:<5d}".format(mat[i][j]),end= " \t ",)
+        print(ubicaciones(i, ubic))
+
+
+def totalProvincia(mat, index):
+    acu = 0
+    for i in range(len(mat[index])):
+        acu += mat[index][i]
+    return acu
+
+
+def linearSearch(ubicaciones, prov):
+    for i in range(len(ubicaciones)):
+        if prov == ubicaciones[i]:
+            return i
+
+def validarProvincia(prov, ubicaciones):
+    while prov not in ubicaciones:
+        print("La provincia ingresada no existe!")
+        prov = input("Ingrese la provincia a buscar(como se encuentra en la lista): ")
+    return prov
+
+
 
 
 def test():
+    ban = False
+    ubicaciones = "Buenos Aires", "Catamarca", "Chaco", "Chubut", "Cordoba", "Corrientes", "Entre Rios", "Formosa", "Jujuy", "La Pampa", "La Rioja", "Mendoza", "Misiones", "Neuquen"\
+        , "Rio Negro", "Salta", "San Juan", "San Luis", "Santa Cruz", "Santa Fe", "Santiago del Estero", "Tierra del Fuego", "Tucuman"
+    calificaciones = "Mala", "Regular", "Buena", "Muy buena", "Excelente"
     n = validarMayorQue(0)
     vec = crearVector(n)
     sorted = ordenarPorCodigo(vec)
@@ -204,25 +219,39 @@ def test():
         if opcion == 2:
             cont = usadosPorCalificacion(vec)
             for i in range(len(cont)):
-                print("Cantidad de publicaciones usadas con puntuacion {0}: ".format(puntuacion(i)), cont[i])
+                print("Cantidad de publicaciones usadas con puntuacion {}: ".format(calificaciones[i]), cont[i])
 
         if opcion == 3:
             mat = crearMatriz(vec)
+            ban = True
             forma = int(input("¿Como desea mostrar la matriz?(0: matriz, 1: lista): "))
             if forma == 1:
-                mostrarMatrizLista(mat)
+                mostrarMatrizLista(mat, calificaciones, ubicaciones)
             elif forma == 0:
                 print("---------------------------")
-                mostrarMatriz(mat)
+                mostrarMatriz(mat, ubicaciones, calificaciones)
+
+        if opcion == 4:
+            if ban == False:
+                print("Matriz no creada")
+            else:
+                for i in range(len(ubicaciones)):
+                    print(str(i+1)+"-"+ubicaciones[i])
+                prov = input("Ingrese la provincia a buscar(como se encuentra en la lista): ")
+                validarProvincia(prov, ubicaciones)
+                index = linearSearch(ubicaciones, prov)
+                if index is not None:
+                    tot = totalProvincia(mat, index)
+                    print("El total de articulos de la provincia {}: {}".format(prov, tot))
 
         if opcion == 5:
             precioprom = precioPromedioUsados(vec)
-            print("Precio promedio de productos usados: ", precioprom)
+            print("Precio promedio de productos usados ${}".format(precioprom))
             precioMayorPromedio(vec, precioprom)
 
         if opcion == 6:
             menor = menorPrecio(vec)
-            print("El menor precio para un producto de estado nuevo, omitiendo a los vendedores con calificacion mala es de {0}: ".format(menor))
+            print("El menor precio para un producto de estado nuevo, omitiendo a los vendedores con calificacion mala es de {}: ".format(menor))
 
         if opcion == 7:
             cod = int(input("Ingrese el codigo de la publicacion a buscar: "))
@@ -231,4 +260,3 @@ def test():
 
 if __name__ == "__main__":
     test()
-
